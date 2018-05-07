@@ -1,0 +1,68 @@
+
+## Uncomment the two cmds and paste this block in your .bashrc or equiv. ###
+# Path to hdahlcontiki repo (update to reflect your setup)
+hdahlpathprefix=~/Documents/embedded
+
+# Do not touch
+#source $hdahlpathprefix/hdahlcontiki/.bashrchdahl
+##################### END BLOCK ############################################
+
+# Clean, build ota, flash using Uniflash4.2 via XDS110(TI Launchpad)
+ngmake()
+{
+        if [ -z $1 ]; then
+           APP=hdahlapp
+        else
+           APP=$1
+        fi
+
+        ngmakeclean $APP
+        ngmakeDebuggerXDS110 "application.hex" $APP
+
+        nglogin
+}
+
+nglogin()
+{
+        # Get the optional interface arg
+        if [ -z $1 ]; then
+           INTERFACE=/dev/ttyACM0
+        else
+           INTERFACE=$1
+        fi
+
+        # Connect to device
+        $hdahlpathprefix/hdahlcontiki/contiki-ng/tools/sky/serialdump-linux $INTERFACE
+}
+
+# Clean
+ngmakeclean()
+{
+        make -C $hdahlpathprefix/hdahlcontiki/$1 clean || { echo "######################## CLEAN FAILED ######################"; return; }
+        echo "############### CLEAN SUCCESSFUL #########################";
+}
+
+# Flash using the debugger pack
+ngmakeDebuggerXDS110()
+{
+        set -o pipefail
+        echo "############## HDAHLMAKE :: DEBUGGER ###################";
+        echo -n "Timestamp: ";
+        date;
+       echo "############## STARTING COMPILATION #######################";
+        make -j 4 -C $hdahlpathprefix/hdahlcontiki/$2 || { echo "######################## COMPILING FAILED ######################"; return; }
+        echo "############## COMPILATION SUCCESSFUL #####################";
+
+        echo "############## TRANSFER TO TARGET #########################";
+	/opt/ti/uniflash_4.3.1/dslite.sh --mode flash --config $hdahlpathprefix/hdahlcontiki/CC2650F128_Debugger.ccxml -e $hdahlpathprefix/hdahlcontiki/$2/$1 || { echo "############## TRANSFER TO TARGET FAILED ###########"; return; }
+
+	echo "############## VERIFY #########################";
+	/opt/ti/uniflash_4.3.1/dslite.sh --mode flash --config $hdahlpathprefix/hdahlcontiki/CC2650F128_Debugger.ccxml -e -v $hdahlpathprefix/hdahlcontiki/$2/$1 || { echo "############## VERIFICATION FAILED ###########"; return; }
+
+        echo "############## TRANSFER AND VERIFICATION SUCCESSFUL ########################";
+        #hdahlsrf13reset
+        echo -n "Timestamp: ";
+        date;
+        echo "############## HDAHLMAKE $1 SUCCESSFUL ########################";
+
+}
