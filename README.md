@@ -1,6 +1,6 @@
-## Personal work on Contiki-ng
+## SensorNodes based on Contiki-ng
 
-This repo is part of py process of understanding Contiki OS and the new fork of contiki - contiki-ng. I have taken and altered a couple of examples from the examples in contiki-ng and altered them to test various things.
+This repo contains the code for the sensorbeacons at Aquahack 2018 in Bergen for Team 1.  It is based on the Contiki-ng RTOS and TI Sensortag
 
 ### Getting started
 1. This repo uses submodules. Clone this repo recursively or remember to initialize the submodules
